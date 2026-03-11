@@ -9,6 +9,14 @@ function isPrivateType(type: string) {
   return lower.includes("priv") && !lower.includes("public");
 }
 
+function getFirestoreStringField(fields: Record<string, any>, key: string) {
+  const value = fields[key];
+  if (!value) return null;
+  if (typeof value.stringValue === "string") return value.stringValue;
+  if (typeof value.timestampValue === "string") return value.timestampValue;
+  return null;
+}
+
 export async function getBlockedEvents(forceRefresh = false) {
   const now = Date.now();
   if (!forceRefresh && memoryCache && memoryCache.until > now) {
@@ -32,12 +40,12 @@ export async function getBlockedEvents(forceRefresh = false) {
 
   for (const doc of docs) {
     const fields = doc.fields ?? {};
-    const dateRaw = fields.date?.stringValue ?? fields.fecha?.stringValue;
-    const type = fields.type?.stringValue ?? "";
+    const dateRaw = getFirestoreStringField(fields, "date") ?? getFirestoreStringField(fields, "fecha");
+    const type = getFirestoreStringField(fields, "type") ?? "";
     if (!dateRaw || !isPrivateType(type)) continue;
     const normalized = normalizeDate(dateRaw);
     if (!normalized) continue;
-    blockedEvents[normalized] = fields.title?.stringValue ?? "EVENTO PRIVADO";
+    blockedEvents[normalized] = getFirestoreStringField(fields, "title") ?? "EVENTO PRIVADO";
   }
 
   await prisma.eventCache.upsert({
