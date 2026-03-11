@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationStatus {
+  HOLD
+  PENDING
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+}
+
+model Reservation {
+  id                  String            @id @default(uuid())
+  code                String            @unique
+  name                String
+  phone               String
+  date                DateTime          @db.Date
+  time                String
+  pax                 Int
+  notes               String?
+  tableId             String?
+  status              ReservationStatus @default(HOLD)
+  confirmKeyHash      String?
+  confirmKeyExpiresAt DateTime?
+  confirmedAt         DateTime?
+  whatsappStatus      String?
+  whatsappError       String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([date, time])
+  @@index([phone])
+  @@index([status])
+}
+
+model Setting {
+  id                   Int      @id @default(1)
+  enableTableSelection Boolean  @default(false)
+  bookingRules         Json
+  whatsapp             Json
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model EventCache {
+  id            Int      @id @default(1)
+  fetchedAt     DateTime
+  blockedEvents Json
+  updatedAt     DateTime @updatedAt
+}
