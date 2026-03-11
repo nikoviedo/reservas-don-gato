@@ -24,6 +24,7 @@ function normalizeConfig(config: ConfigResponse): ConfigResponse {
     open_days: Array.isArray(config.open_days) ? config.open_days : [],
     opening_hours: Array.isArray(config.opening_hours) ? config.opening_hours : [],
     blocked_dates: Array.isArray(config.blocked_dates) ? config.blocked_dates : [],
+    blocked_ranges: Array.isArray(config.blocked_ranges) ? config.blocked_ranges : [],
     private_events: Array.isArray(config.private_events) ? config.private_events : [],
   };
 }

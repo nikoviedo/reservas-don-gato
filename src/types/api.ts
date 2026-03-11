@@ -7,6 +7,7 @@ export interface ConfigResponse {
   open_days: string[];
   opening_hours: Array<{ day: string; from: string; to: string }>;
   blocked_dates: string[];
+  blocked_ranges?: Array<{ from: string; to: string }>;
   private_events: string[];
   allow_without_table: boolean;
   max_party_size: number;
@@ -22,6 +23,7 @@ export interface HoldRequest {
   time: string;
   guests: number;
   notes?: string;
+  event_type?: 'cumpleanos' | 'juntada' | '';
   without_table?: boolean;
 }
 
