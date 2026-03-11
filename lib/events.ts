@@ -9,6 +9,11 @@ function isPrivateType(type: string) {
   return lower.includes("priv") && !lower.includes("public");
 }
 
+function hasPrivateKeyword(text: string) {
+  const lower = text.toLowerCase();
+  return lower.includes("evento privado") || lower.includes("privad") || lower.includes("cerrad");
+}
+
 function getFirestoreStringField(fields: Record<string, any>, key: string) {
   const value = fields[key];
   if (!value) return null;
@@ -40,12 +45,27 @@ export async function getBlockedEvents(forceRefresh = false) {
 
   for (const doc of docs) {
     const fields = doc.fields ?? {};
-    const dateRaw = getFirestoreStringField(fields, "date") ?? getFirestoreStringField(fields, "fecha");
-    const type = getFirestoreStringField(fields, "type") ?? "";
-    if (!dateRaw || !isPrivateType(type)) continue;
+    const dateRaw =
+      getFirestoreStringField(fields, "date") ??
+      getFirestoreStringField(fields, "fecha") ??
+      getFirestoreStringField(fields, "fecha_iso");
+    const type =
+      getFirestoreStringField(fields, "type") ??
+      getFirestoreStringField(fields, "tipo") ??
+      getFirestoreStringField(fields, "tipo_evento") ??
+      "";
+    const title =
+      getFirestoreStringField(fields, "title") ??
+      getFirestoreStringField(fields, "titulo") ??
+      getFirestoreStringField(fields, "evento") ??
+      "";
+
+    if (!dateRaw) continue;
+    if (!isPrivateType(type) && !hasPrivateKeyword(title)) continue;
+
     const normalized = normalizeDate(dateRaw);
     if (!normalized) continue;
-    blockedEvents[normalized] = getFirestoreStringField(fields, "title") ?? "EVENTO PRIVADO";
+    blockedEvents[normalized] = title || "EVENTO PRIVADO";
   }
 
   await prisma.eventCache.upsert({
