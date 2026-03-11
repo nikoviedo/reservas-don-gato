@@ -77,7 +77,7 @@ export function DayCalendar({ blockedDates, blockedRanges = [], privateEvents, s
           <button
             key={day.iso}
             type="button"
-            disabled={day.isBlocked}
+            disabled={day.isBlocked || day.isPrivateEvent}
             className={`calendar-day ${selectedDate === day.iso ? 'selected' : ''} ${!day.isCurrentMonth ? 'outside-month' : ''}`}
             onClick={() => onSelectDate(day.iso)}
           >
