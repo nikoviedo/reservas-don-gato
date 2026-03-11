@@ -5,17 +5,7 @@ import { TimeSlots } from '../components/TimeSlots';
 import { useConfig } from '../hooks/useConfig';
 import { api } from '../lib/api';
 
-function buildSlots(minutes: number): string[] {
-  const slots: string[] = [];
-  for (let h = 12; h <= 23; h += 1) {
-    for (let m = 0; m < 60; m += minutes) {
-      const hh = String(h).padStart(2, '0');
-      const mm = String(m).padStart(2, '0');
-      slots.push(`${hh}:${mm}`);
-    }
-  }
-  return slots;
-}
+const FIXED_SLOTS = ['20:00', '20:30', '21:00', '21:30', '22:00'];
 
 export function PublicBooking() {
   const { data: config, loading, error } = useConfig();
@@ -31,10 +21,11 @@ export function PublicBooking() {
     customer_email: '',
     guests: 2,
     notes: '',
+    event_type: '' as '' | 'cumpleanos' | 'juntada',
     without_table: false,
   });
 
-  const slots = useMemo(() => buildSlots(config?.slot_minutes ?? 30), [config?.slot_minutes]);
+  const slots = useMemo(() => FIXED_SLOTS, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -63,6 +54,7 @@ export function PublicBooking() {
       <h2>1) Elegí fecha</h2>
       <DayCalendar
         blockedDates={config.blocked_dates}
+        blockedRanges={config.blocked_ranges}
         privateEvents={config.private_events}
         selectedDate={date}
         onSelectDate={setDate}
@@ -112,6 +104,14 @@ export function PublicBooking() {
           value={form.notes}
           onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
         />
+        <select
+          value={form.event_type}
+          onChange={(e) => setForm((prev) => ({ ...prev, event_type: e.target.value as '' | 'cumpleanos' | 'juntada' }))}
+        >
+          <option value="">Tipo de evento (opcional)</option>
+          <option value="cumpleanos">Cumpleaños</option>
+          <option value="juntada">Juntada</option>
+        </select>
         <button type="submit" disabled={sending}>{sending ? 'Enviando...' : 'Confirmar reserva'}</button>
       </form>
       {message && <Alert type={message.type} message={message.text} />}
