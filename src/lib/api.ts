@@ -18,6 +18,16 @@ declare global {
 
 const baseApi = window.DG_API_BASE ?? '/wp-json/dg/v1';
 
+function normalizeConfig(config: ConfigResponse): ConfigResponse {
+  return {
+    ...config,
+    open_days: Array.isArray(config.open_days) ? config.open_days : [],
+    opening_hours: Array.isArray(config.opening_hours) ? config.opening_hours : [],
+    blocked_dates: Array.isArray(config.blocked_dates) ? config.blocked_dates : [],
+    private_events: Array.isArray(config.private_events) ? config.private_events : [],
+  };
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${baseApi}${path}`, {
     headers: {
@@ -41,7 +51,7 @@ let configPromise: Promise<ConfigResponse> | null = null;
 export const api = {
   getConfig(): Promise<ConfigResponse> {
     if (!configPromise) {
-      configPromise = request<ConfigResponse>('/config');
+      configPromise = request<ConfigResponse>('/config').then((config) => normalizeConfig(config));
     }
     return configPromise;
   },
