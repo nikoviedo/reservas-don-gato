@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-const baseApi = window.DG_API_BASE ?? '/wp-json/dg/v1';
+const baseApi = (window.DG_API_BASE ?? import.meta.env.VITE_API_BASE ?? '/wp-json/dg/v1').replace(/\/$/, '');
 
 function normalizeConfig(config: ConfigResponse): ConfigResponse {
   return {
@@ -49,6 +49,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 let configPromise: Promise<ConfigResponse> | null = null;
 
+function toBackendHoldPayload(payload: HoldRequest) {
+  return {
+    ...payload,
+    name: payload.customer_name,
+    phone: payload.customer_phone,
+    pax: payload.guests,
+    tableId: payload.without_table ? null : undefined,
+  };
+}
+
 export const api = {
   getConfig(): Promise<ConfigResponse> {
     if (!configPromise) {
@@ -59,7 +69,7 @@ export const api = {
   createHold(payload: HoldRequest): Promise<HoldResponse> {
     return request<HoldResponse>('/public_hold', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(toBackendHoldPayload(payload)),
     });
   },
   confirmReservation(key: string): Promise<PublicConfirmResponse> {
